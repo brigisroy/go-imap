@@ -39,7 +39,6 @@ type SearchCriteria struct {
 	SeqNum []SeqSet
 	UID    []UIDSet
 
-	// Only the date is used, the time and timezone are ignored
 	Since      time.Time
 	Before     time.Time
 	SentSince  time.Time

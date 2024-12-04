@@ -32,7 +32,9 @@ func returnSearchOptions(options *imap.SearchOptions) []string {
 	return l
 }
 
-func (c *Client) search(numKind imapwire.NumKind, criteria *imap.SearchCriteria, options *imap.SearchOptions) *SearchCommand {
+func (c *Client) search(
+	numKind imapwire.NumKind, criteria *imap.SearchCriteria, options *imap.SearchOptions,
+) *SearchCommand {
 	// The IMAP4rev2 SEARCH charset defaults to UTF-8. When UTF8=ACCEPT is
 	// enabled, specifying any CHARSET is invalid. For IMAP4rev1 the default is
 	// undefined and only US-ASCII support is required. What's more, some
@@ -59,9 +61,11 @@ func (c *Client) search(numKind imapwire.NumKind, criteria *imap.SearchCriteria,
 	cmd.data.All = all
 	enc := c.beginCommand(uidCmdName("SEARCH", numKind), cmd)
 	if returnOpts := returnSearchOptions(options); len(returnOpts) > 0 {
-		enc.SP().Atom("RETURN").SP().List(len(returnOpts), func(i int) {
-			enc.Atom(returnOpts[i])
-		})
+		enc.SP().Atom("RETURN").SP().List(
+			len(returnOpts), func(i int) {
+				enc.Atom(returnOpts[i])
+			},
+		)
 	}
 	enc.SP()
 	if charset != "" {
@@ -128,17 +132,19 @@ func (c *Client) handleESearch() error {
 	if err != nil {
 		return err
 	}
-	cmd := c.findPendingCmdFunc(func(anyCmd command) bool {
-		cmd, ok := anyCmd.(*SearchCommand)
-		if !ok {
-			return false
-		}
-		if tag != "" {
-			return cmd.tag == tag
-		} else {
-			return true
-		}
-	})
+	cmd := c.findPendingCmdFunc(
+		func(anyCmd command) bool {
+			cmd, ok := anyCmd.(*SearchCommand)
+			if !ok {
+				return false
+			}
+			if tag != "" {
+				return cmd.tag == tag
+			} else {
+				return true
+			}
+		},
+	)
 	if cmd != nil {
 		cmd := cmd.(*SearchCommand)
 		cmd.data = *data
@@ -174,23 +180,23 @@ func writeSearchKey(enc *imapwire.Encoder, criteria *imap.SearchCriteria) {
 	}
 
 	if !criteria.Since.IsZero() && !criteria.Before.IsZero() && criteria.Before.Sub(criteria.Since) == 24*time.Hour {
-		encodeItem().Atom("ON").SP().String(criteria.Since.Format(internal.DateLayout))
+		encodeItem().Atom("ON").SP().String(criteria.Since.Format(internal.DateTimeLayout))
 	} else {
 		if !criteria.Since.IsZero() {
-			encodeItem().Atom("SINCE").SP().String(criteria.Since.Format(internal.DateLayout))
+			encodeItem().Atom("SINCE").SP().String(criteria.Since.Format(internal.DateTimeLayout))
 		}
 		if !criteria.Before.IsZero() {
-			encodeItem().Atom("BEFORE").SP().String(criteria.Before.Format(internal.DateLayout))
+			encodeItem().Atom("BEFORE").SP().String(criteria.Before.Format(internal.DateTimeLayout))
 		}
 	}
 	if !criteria.SentSince.IsZero() && !criteria.SentBefore.IsZero() && criteria.SentBefore.Sub(criteria.SentSince) == 24*time.Hour {
-		encodeItem().Atom("SENTON").SP().String(criteria.SentSince.Format(internal.DateLayout))
+		encodeItem().Atom("SENTON").SP().String(criteria.SentSince.Format(internal.DateTimeLayout))
 	} else {
 		if !criteria.SentSince.IsZero() {
-			encodeItem().Atom("SENTSINCE").SP().String(criteria.SentSince.Format(internal.DateLayout))
+			encodeItem().Atom("SENTSINCE").SP().String(criteria.SentSince.Format(internal.DateTimeLayout))
 		}
 		if !criteria.SentBefore.IsZero() {
-			encodeItem().Atom("SENTBEFORE").SP().String(criteria.SentBefore.Format(internal.DateLayout))
+			encodeItem().Atom("SENTBEFORE").SP().String(criteria.SentBefore.Format(internal.DateTimeLayout))
 		}
 	}
 
