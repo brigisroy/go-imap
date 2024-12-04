@@ -3,7 +3,7 @@ package imapclient
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 type GetMetadataDepth int
@@ -55,22 +55,26 @@ func (c *Client) GetMetadata(mailbox string, entries []string, options *GetMetad
 	enc := c.beginCommand("GETMETADATA", cmd)
 	enc.SP().Mailbox(mailbox)
 	if opts := options.names(); len(opts) > 0 {
-		enc.SP().List(len(opts), func(i int) {
-			opt := opts[i]
-			enc.Atom(opt).SP()
-			switch opt {
-			case "MAXSIZE":
-				enc.Number(*options.MaxSize)
-			case "DEPTH":
-				enc.Atom(options.Depth.String())
-			default:
-				panic(fmt.Errorf("imapclient: unknown GETMETADATA option %q", opt))
-			}
-		})
+		enc.SP().List(
+			len(opts), func(i int) {
+				opt := opts[i]
+				enc.Atom(opt).SP()
+				switch opt {
+				case "MAXSIZE":
+					enc.Number(*options.MaxSize)
+				case "DEPTH":
+					enc.Atom(options.Depth.String())
+				default:
+					panic(fmt.Errorf("imapclient: unknown GETMETADATA option %q", opt))
+				}
+			},
+		)
 	}
-	enc.SP().List(len(entries), func(i int) {
-		enc.String(entries[i])
-	})
+	enc.SP().List(
+		len(entries), func(i int) {
+			enc.String(entries[i])
+		},
+	)
 	enc.end()
 	return cmd
 }
@@ -108,10 +112,12 @@ func (c *Client) handleMetadata() error {
 		return fmt.Errorf("in metadata-resp: %v", err)
 	}
 
-	cmd := c.findPendingCmdFunc(func(anyCmd command) bool {
-		cmd, ok := anyCmd.(*GetMetadataCommand)
-		return ok && cmd.mailbox == data.Mailbox
-	})
+	cmd := c.findPendingCmdFunc(
+		func(anyCmd command) bool {
+			cmd, ok := anyCmd.(*GetMetadataCommand)
+			return ok && cmd.mailbox == data.Mailbox
+		},
+	)
 	if cmd != nil && len(data.EntryValues) > 0 {
 		cmd := cmd.(*GetMetadataCommand)
 		cmd.data.Mailbox = data.Mailbox
@@ -160,30 +166,32 @@ func readMetadataResp(dec *imapwire.Decoder) (*metadataResp, error) {
 		return nil, dec.Err()
 	}
 
-	isList, err := dec.List(func() error {
-		var name string
-		if !dec.ExpectAString(&name) || !dec.ExpectSP() {
-			return dec.Err()
-		}
+	isList, err := dec.List(
+		func() error {
+			var name string
+			if !dec.ExpectAString(&name) || !dec.ExpectSP() {
+				return dec.Err()
+			}
 
-		// TODO: decode as []byte
-		var (
-			value *[]byte
-			s     string
-		)
-		if dec.String(&s) || dec.Literal(&s) {
-			b := []byte(s)
-			value = &b
-		} else if !dec.ExpectNIL() {
-			return dec.Err()
-		}
+			// TODO: decode as []byte
+			var (
+				value *[]byte
+				s     string
+			)
+			if dec.String(&s) || dec.Literal(&s) {
+				b := []byte(s)
+				value = &b
+			} else if !dec.ExpectNIL() {
+				return dec.Err()
+			}
 
-		if data.EntryValues == nil {
-			data.EntryValues = make(map[string]*[]byte)
-		}
-		data.EntryValues[name] = value
-		return nil
-	})
+			if data.EntryValues == nil {
+				data.EntryValues = make(map[string]*[]byte)
+			}
+			data.EntryValues[name] = value
+			return nil
+		},
+	)
 	if err != nil {
 		return nil, err
 	} else if !isList {

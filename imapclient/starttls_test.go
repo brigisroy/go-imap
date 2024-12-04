@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"testing"
 
-	"github.com/emersion/go-imap/v2/imapclient"
+	"github.com/brigisroy/go-imap/v2/imapclient"
 )
 
 func TestStartTLS(t *testing.T) {

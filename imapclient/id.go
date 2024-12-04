@@ -3,8 +3,8 @@ package imapclient
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // ID sends an ID command.
@@ -102,49 +102,51 @@ func (c *Client) readID(dec *imapwire.Decoder) (*imap.IDData, error) {
 	}
 
 	currKey := ""
-	err := dec.ExpectList(func() error {
-		var keyOrValue string
-		if !dec.String(&keyOrValue) {
-			return fmt.Errorf("in id key-val list: %v", dec.Err())
-		}
+	err := dec.ExpectList(
+		func() error {
+			var keyOrValue string
+			if !dec.String(&keyOrValue) {
+				return fmt.Errorf("in id key-val list: %v", dec.Err())
+			}
 
-		if currKey == "" {
-			currKey = keyOrValue
+			if currKey == "" {
+				currKey = keyOrValue
+				return nil
+			}
+
+			switch currKey {
+			case "name":
+				data.Name = keyOrValue
+			case "version":
+				data.Version = keyOrValue
+			case "os":
+				data.OS = keyOrValue
+			case "os-version":
+				data.OSVersion = keyOrValue
+			case "vendor":
+				data.Vendor = keyOrValue
+			case "support-url":
+				data.SupportURL = keyOrValue
+			case "address":
+				data.Address = keyOrValue
+			case "date":
+				data.Date = keyOrValue
+			case "command":
+				data.Command = keyOrValue
+			case "arguments":
+				data.Arguments = keyOrValue
+			case "environment":
+				data.Environment = keyOrValue
+			default:
+				// Ignore unknown key
+				// Yahoo server sends "host" and "remote-host" keys
+				// which are not defined in RFC 2971
+			}
+			currKey = ""
+
 			return nil
-		}
-
-		switch currKey {
-		case "name":
-			data.Name = keyOrValue
-		case "version":
-			data.Version = keyOrValue
-		case "os":
-			data.OS = keyOrValue
-		case "os-version":
-			data.OSVersion = keyOrValue
-		case "vendor":
-			data.Vendor = keyOrValue
-		case "support-url":
-			data.SupportURL = keyOrValue
-		case "address":
-			data.Address = keyOrValue
-		case "date":
-			data.Date = keyOrValue
-		case "command":
-			data.Command = keyOrValue
-		case "arguments":
-			data.Arguments = keyOrValue
-		case "environment":
-			data.Environment = keyOrValue
-		default:
-			// Ignore unknown key
-			// Yahoo server sends "host" and "remote-host" keys
-			// which are not defined in RFC 2971
-		}
-		currKey = ""
-
-		return nil
-	})
+		},
+	)
 
 	if err != nil {
 		return nil, err

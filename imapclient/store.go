@@ -3,8 +3,8 @@ package imapclient
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // Store sends a STORE command.
@@ -36,9 +36,11 @@ func (c *Client) Store(numSet imap.NumSet, store *imap.StoreFlags, options *imap
 	if store.Silent {
 		enc.Atom(".SILENT")
 	}
-	enc.SP().List(len(store.Flags), func(i int) {
-		enc.Flag(store.Flags[i])
-	})
+	enc.SP().List(
+		len(store.Flags), func(i int) {
+			enc.Flag(store.Flags[i])
+		},
+	)
 	enc.end()
 	return cmd
 }

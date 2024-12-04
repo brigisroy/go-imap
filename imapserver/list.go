@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
-	"github.com/emersion/go-imap/v2/internal/utf7"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2/internal/utf7"
 )
 
 func (c *Conn) handleList(dec *imapwire.Decoder) error {
@@ -57,9 +57,11 @@ func (c *Conn) writeList(data *imap.ListData) error {
 	defer enc.end()
 
 	enc.Atom("*").SP().Atom("LIST").SP()
-	enc.List(len(data.Attrs), func(i int) {
-		enc.MailboxAttr(data.Attrs[i])
-	})
+	enc.List(
+		len(data.Attrs), func(i int) {
+			enc.MailboxAttr(data.Attrs[i])
+		},
+	)
 	enc.SP()
 	if data.Delim == 0 {
 		enc.NIL()
@@ -78,22 +80,24 @@ func (c *Conn) writeList(data *imap.ListData) error {
 
 	// TODO: omit extended data if the client didn't ask for it
 	if len(ext) > 0 {
-		enc.SP().List(len(ext), func(i int) {
-			name := ext[i]
-			enc.Atom(name).SP()
-			switch name {
-			case "CHILDINFO":
-				enc.Special('(')
-				if data.ChildInfo.Subscribed {
-					enc.Quoted("SUBSCRIBED")
+		enc.SP().List(
+			len(ext), func(i int) {
+				name := ext[i]
+				enc.Atom(name).SP()
+				switch name {
+				case "CHILDINFO":
+					enc.Special('(')
+					if data.ChildInfo.Subscribed {
+						enc.Quoted("SUBSCRIBED")
+					}
+					enc.Special(')')
+				case "OLDNAME":
+					enc.Special('(').Mailbox(data.OldName).Special(')')
+				default:
+					panic(fmt.Errorf("imapserver: unknown LIST extended-item %v", name))
 				}
-				enc.Special(')')
-			case "OLDNAME":
-				enc.Special('(').Mailbox(data.OldName).Special(')')
-			default:
-				panic(fmt.Errorf("imapserver: unknown LIST extended-item %v", name))
-			}
-		})
+			},
+		)
 	}
 
 	return enc.CRLF()
@@ -104,9 +108,11 @@ func (c *Conn) writeLSub(data *imap.ListData) error {
 	defer enc.end()
 
 	enc.Atom("*").SP().Atom("LSUB").SP()
-	enc.List(len(data.Attrs), func(i int) {
-		enc.MailboxAttr(data.Attrs[i])
-	})
+	enc.List(
+		len(data.Attrs), func(i int) {
+			enc.MailboxAttr(data.Attrs[i])
+		},
+	)
 	enc.SP()
 	if data.Delim == 0 {
 		enc.NIL()
@@ -117,30 +123,34 @@ func (c *Conn) writeLSub(data *imap.ListData) error {
 	return enc.CRLF()
 }
 
-func readListCmd(dec *imapwire.Decoder) (ref string, patterns []string, options *imap.ListOptions, returnRecent bool, err error) {
+func readListCmd(dec *imapwire.Decoder) (
+	ref string, patterns []string, options *imap.ListOptions, returnRecent bool, err error,
+) {
 	options = &imap.ListOptions{}
 
 	if !dec.ExpectSP() {
 		return "", nil, nil, false, dec.Err()
 	}
 
-	hasSelectOpts, err := dec.List(func() error {
-		var selectOpt string
-		if !dec.ExpectAString(&selectOpt) {
-			return dec.Err()
-		}
-		switch strings.ToUpper(selectOpt) {
-		case "SUBSCRIBED":
-			options.SelectSubscribed = true
-		case "REMOTE":
-			options.SelectRemote = true
-		case "RECURSIVEMATCH":
-			options.SelectRecursiveMatch = true
-		default:
-			return newClientBugError("Unknown LIST select option")
-		}
-		return nil
-	})
+	hasSelectOpts, err := dec.List(
+		func() error {
+			var selectOpt string
+			if !dec.ExpectAString(&selectOpt) {
+				return dec.Err()
+			}
+			switch strings.ToUpper(selectOpt) {
+			case "SUBSCRIBED":
+				options.SelectSubscribed = true
+			case "REMOTE":
+				options.SelectRemote = true
+			case "RECURSIVEMATCH":
+				options.SelectRecursiveMatch = true
+			default:
+				return newClientBugError("Unknown LIST select option")
+			}
+			return nil
+		},
+	)
 	if err != nil {
 		return "", nil, nil, false, fmt.Errorf("in list-select-opts: %w", err)
 	}
@@ -152,13 +162,15 @@ func readListCmd(dec *imapwire.Decoder) (ref string, patterns []string, options 
 		return "", nil, nil, false, dec.Err()
 	}
 
-	hasPatterns, err := dec.List(func() error {
-		pattern, err := readListMailbox(dec)
-		if err == nil && pattern != "" {
-			patterns = append(patterns, pattern)
-		}
-		return err
-	})
+	hasPatterns, err := dec.List(
+		func() error {
+			pattern, err := readListMailbox(dec)
+			if err == nil && pattern != "" {
+				patterns = append(patterns, pattern)
+			}
+			return err
+		},
+	)
 	if err != nil {
 		return "", nil, nil, false, err
 	} else if hasPatterns && len(patterns) == 0 {
@@ -179,9 +191,11 @@ func readListCmd(dec *imapwire.Decoder) (ref string, patterns []string, options 
 			return "", nil, nil, false, dec.Err()
 		}
 
-		err := dec.ExpectList(func() error {
-			return readReturnOption(dec, options, &returnRecent)
-		})
+		err := dec.ExpectList(
+			func() error {
+				return readReturnOption(dec, options, &returnRecent)
+			},
+		)
 		if err != nil {
 			return "", nil, nil, false, fmt.Errorf("in list-return-opts: %w", err)
 		}
@@ -235,13 +249,15 @@ func readReturnOption(dec *imapwire.Decoder, options *imap.ListOptions, recent *
 			return dec.Err()
 		}
 		options.ReturnStatus = new(imap.StatusOptions)
-		return dec.ExpectList(func() error {
-			isRecent, err := readStatusItem(dec, options.ReturnStatus)
-			if isRecent {
-				*recent = true
-			}
-			return err
-		})
+		return dec.ExpectList(
+			func() error {
+				isRecent, err := readStatusItem(dec, options.ReturnStatus)
+				if isRecent {
+					*recent = true
+				}
+				return err
+			},
+		)
 	default:
 		return newClientBugError("Unknown LIST RETURN options")
 	}

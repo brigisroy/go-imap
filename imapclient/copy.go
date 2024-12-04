@@ -3,8 +3,8 @@ package imapclient
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // Copy sends a COPY command.

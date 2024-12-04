@@ -8,9 +8,9 @@ import (
 	"net"
 	"os"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapserver"
-	"github.com/emersion/go-imap/v2/imapserver/imapmemserver"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/imapserver"
+	"github.com/brigisroy/go-imap/v2/imapserver/imapmemserver"
 )
 
 var (
@@ -63,18 +63,20 @@ func main() {
 		debugWriter = os.Stdout
 	}
 
-	server := imapserver.New(&imapserver.Options{
-		NewSession: func(conn *imapserver.Conn) (imapserver.Session, *imapserver.GreetingData, error) {
-			return memServer.NewSession(), nil, nil
+	server := imapserver.New(
+		&imapserver.Options{
+			NewSession: func(conn *imapserver.Conn) (imapserver.Session, *imapserver.GreetingData, error) {
+				return memServer.NewSession(), nil, nil
+			},
+			Caps: imap.CapSet{
+				imap.CapIMAP4rev1: {},
+				imap.CapIMAP4rev2: {},
+			},
+			TLSConfig:    tlsConfig,
+			InsecureAuth: insecureAuth,
+			DebugWriter:  debugWriter,
 		},
-		Caps: imap.CapSet{
-			imap.CapIMAP4rev1: {},
-			imap.CapIMAP4rev2: {},
-		},
-		TLSConfig:    tlsConfig,
-		InsecureAuth: insecureAuth,
-		DebugWriter:  debugWriter,
-	})
+	)
 	if err := server.Serve(ln); err != nil {
 		log.Fatalf("Serve() = %v", err)
 	}

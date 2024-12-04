@@ -3,7 +3,7 @@ package imapclient_test
 import (
 	"testing"
 
-	"github.com/emersion/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2"
 )
 
 // order matters
@@ -78,38 +78,47 @@ func TestACL(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// execute SETACL command
-			err := client.SetACL(tc.mailbox, testUsername, tc.setRightsModification, tc.setRights).Wait()
-			if err != nil {
-				t.Errorf("SetACL().Wait() error: %v", err)
-			}
+		t.Run(
+			tc.name, func(t *testing.T) {
+				// execute SETACL command
+				err := client.SetACL(tc.mailbox, testUsername, tc.setRightsModification, tc.setRights).Wait()
+				if err != nil {
+					t.Errorf("SetACL().Wait() error: %v", err)
+				}
 
-			// execute GETACL command to reset cache on server
-			getACLData, err := client.GetACL(tc.mailbox).Wait()
-			if err != nil {
-				t.Errorf("GetACL().Wait() error: %v", err)
-			}
+				// execute GETACL command to reset cache on server
+				getACLData, err := client.GetACL(tc.mailbox).Wait()
+				if err != nil {
+					t.Errorf("GetACL().Wait() error: %v", err)
+				}
 
-			if !tc.expectedRights.Equal(getACLData.Rights[testUsername]) {
-				t.Errorf("GETACL returned wrong rights; expected: %s, got: %s", tc.expectedRights, getACLData.Rights[testUsername])
-			}
+				if !tc.expectedRights.Equal(getACLData.Rights[testUsername]) {
+					t.Errorf(
+						"GETACL returned wrong rights; expected: %s, got: %s", tc.expectedRights,
+						getACLData.Rights[testUsername],
+					)
+				}
 
-			// execute MYRIGHTS command
-			myRightsData, err := client.MyRights(tc.mailbox).Wait()
-			if err != nil {
-				t.Errorf("MyRights().Wait() error: %v", err)
-			}
+				// execute MYRIGHTS command
+				myRightsData, err := client.MyRights(tc.mailbox).Wait()
+				if err != nil {
+					t.Errorf("MyRights().Wait() error: %v", err)
+				}
 
-			if !tc.expectedRights.Equal(myRightsData.Rights) {
-				t.Errorf("MYRIGHTS returned wrong rights; expected: %s, got: %s", tc.expectedRights, myRightsData.Rights)
-			}
-		})
+				if !tc.expectedRights.Equal(myRightsData.Rights) {
+					t.Errorf(
+						"MYRIGHTS returned wrong rights; expected: %s, got: %s", tc.expectedRights, myRightsData.Rights,
+					)
+				}
+			},
+		)
 	}
 
-	t.Run("nonexistent_mailbox", func(t *testing.T) {
-		if client.SetACL("BibiMailbox", testUsername, imap.RightModificationReplace, nil).Wait() == nil {
-			t.Errorf("expected error")
-		}
-	})
+	t.Run(
+		"nonexistent_mailbox", func(t *testing.T) {
+			if client.SetACL("BibiMailbox", testUsername, imap.RightModificationReplace, nil).Wait() == nil {
+				t.Errorf("expected error")
+			}
+		},
+	)
 }

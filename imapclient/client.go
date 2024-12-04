@@ -32,9 +32,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 const (
@@ -541,10 +541,12 @@ func (c *Client) registerContReq(cmd command) *imapwire.ContinuationRequest {
 	contReq := imapwire.NewContinuationRequest()
 
 	c.mutex.Lock()
-	c.contReqs = append(c.contReqs, continuationRequest{
-		ContinuationRequest: contReq,
-		cmd:                 cmd.base(),
-	})
+	c.contReqs = append(
+		c.contReqs, continuationRequest{
+			ContinuationRequest: contReq,
+			cmd:                 cmd.base(),
+		},
+	)
 	c.mutex.Unlock()
 
 	return contReq

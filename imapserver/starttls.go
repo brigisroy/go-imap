@@ -6,8 +6,8 @@ import (
 	"io"
 	"net"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) canStartTLS() bool {
@@ -38,10 +38,12 @@ func (c *Conn) handleStartTLS(tag string, dec *imapwire.Decoder) error {
 	enc := newResponseEncoder(c)
 	defer enc.end()
 
-	err := writeStatusResp(enc.Encoder, tag, &imap.StatusResponse{
-		Type: imap.StatusResponseTypeOK,
-		Text: "Begin TLS negotiation now",
-	})
+	err := writeStatusResp(
+		enc.Encoder, tag, &imap.StatusResponse{
+			Type: imap.StatusResponseTypeOK,
+			Text: "Begin TLS negotiation now",
+		},
+	)
 	if err != nil {
 		return err
 	}

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapnum"
-	"github.com/emersion/go-imap/v2/internal/utf7"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapnum"
+	"github.com/brigisroy/go-imap/v2/internal/utf7"
 )
 
 // This limits the max list nesting depth to prevent stack overflow.
@@ -269,12 +269,14 @@ func (dec *Decoder) DiscardValue() bool {
 		return true
 	}
 
-	isList, err := dec.List(func() error {
-		if !dec.DiscardValue() {
-			return dec.Err()
-		}
-		return nil
-	})
+	isList, err := dec.List(
+		func() error {
+			if !dec.DiscardValue() {
+				return dec.Err()
+			}
+			return nil
+		},
+	)
 	if err != nil {
 		return false
 	} else if isList {

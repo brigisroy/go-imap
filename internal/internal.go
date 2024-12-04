@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 const (
@@ -54,18 +54,20 @@ func ExpectDate(dec *imapwire.Decoder) (time.Time, error) {
 
 func ExpectFlagList(dec *imapwire.Decoder) ([]imap.Flag, error) {
 	var flags []imap.Flag
-	err := dec.ExpectList(func() error {
-		// Some servers start the list with a space, so we need to skip it
-		// https://github.com/emersion/go-imap/pull/633
-		dec.SP()
+	err := dec.ExpectList(
+		func() error {
+			// Some servers start the list with a space, so we need to skip it
+			// https://github.com/emersion/go-imap/pull/633
+			dec.SP()
 
-		flag, err := ExpectFlag(dec)
-		if err != nil {
-			return err
-		}
-		flags = append(flags, flag)
-		return nil
-	})
+			flag, err := ExpectFlag(dec)
+			if err != nil {
+				return err
+			}
+			flags = append(flags, flag)
+			return nil
+		},
+	)
 	return flags, err
 }
 
@@ -86,14 +88,16 @@ func ExpectFlag(dec *imapwire.Decoder) (imap.Flag, error) {
 
 func ExpectMailboxAttrList(dec *imapwire.Decoder) ([]imap.MailboxAttr, error) {
 	var attrs []imap.MailboxAttr
-	err := dec.ExpectList(func() error {
-		attr, err := ExpectMailboxAttr(dec)
-		if err != nil {
-			return err
-		}
-		attrs = append(attrs, attr)
-		return nil
-	})
+	err := dec.ExpectList(
+		func() error {
+			attr, err := ExpectMailboxAttr(dec)
+			if err != nil {
+				return err
+			}
+			attrs = append(attrs, attr)
+			return nil
+		},
+	)
 	return attrs, err
 }
 

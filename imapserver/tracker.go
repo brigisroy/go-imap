@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/emersion/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2"
 )
 
 // MailboxTracker tracks the state of a mailbox.
@@ -43,10 +43,20 @@ func (t *MailboxTracker) queueUpdate(update *trackerUpdate, source *SessionTrack
 	defer t.mutex.Unlock()
 
 	if update.expunge != 0 && update.expunge > t.numMessages {
-		panic(fmt.Errorf("imapserver: expunge sequence number (%v) out of range (%v messages in mailbox)", update.expunge, t.numMessages))
+		panic(
+			fmt.Errorf(
+				"imapserver: expunge sequence number (%v) out of range (%v messages in mailbox)", update.expunge,
+				t.numMessages,
+			),
+		)
 	}
 	if update.numMessages != 0 && update.numMessages < t.numMessages {
-		panic(fmt.Errorf("imapserver: cannot decrease mailbox number of messages from %v to %v", t.numMessages, update.numMessages))
+		panic(
+			fmt.Errorf(
+				"imapserver: cannot decrease mailbox number of messages from %v to %v", t.numMessages,
+				update.numMessages,
+			),
+		)
 	}
 
 	for st := range t.sessions {
@@ -90,11 +100,15 @@ func (t *MailboxTracker) QueueMailboxFlags(flags []imap.Flag) {
 //
 // If source is not nil, the update won't be dispatched to it.
 func (t *MailboxTracker) QueueMessageFlags(seqNum uint32, uid imap.UID, flags []imap.Flag, source *SessionTracker) {
-	t.queueUpdate(&trackerUpdate{fetch: &trackerUpdateFetch{
-		seqNum: seqNum,
-		uid:    uid,
-		flags:  flags,
-	}}, source)
+	t.queueUpdate(
+		&trackerUpdate{
+			fetch: &trackerUpdateFetch{
+				seqNum: seqNum,
+				uid:    uid,
+				flags:  flags,
+			},
+		}, source,
+	)
 }
 
 type trackerUpdate struct {

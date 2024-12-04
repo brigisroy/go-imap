@@ -5,9 +5,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // appendLimit is the maximum size of an APPEND payload.
@@ -24,14 +24,16 @@ func (c *Conn) handleAppend(tag string, dec *imapwire.Decoder) error {
 		return dec.Err()
 	}
 
-	hasFlagList, err := dec.List(func() error {
-		flag, err := internal.ExpectFlag(dec)
-		if err != nil {
-			return err
-		}
-		options.Flags = append(options.Flags, flag)
-		return nil
-	})
+	hasFlagList, err := dec.List(
+		func() error {
+			flag, err := internal.ExpectFlag(dec)
+			if err != nil {
+				return err
+			}
+			options.Flags = append(options.Flags, flag)
+			return nil
+		},
+	)
 	if err != nil {
 		return err
 	}

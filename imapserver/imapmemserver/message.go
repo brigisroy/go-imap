@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/imapserver"
 	gomessage "github.com/emersion/go-message"
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-message/textproto"
@@ -383,11 +383,13 @@ func parseAddressList(mh mail.Header, k string) []imap.Address {
 		if !ok {
 			continue
 		}
-		l = append(l, imap.Address{
-			Name:    mime.QEncoding.Encode("utf-8", addr.Name),
-			Mailbox: mailbox,
-			Host:    host,
-		})
+		l = append(
+			l, imap.Address{
+				Name:    mime.QEncoding.Encode("utf-8", addr.Name),
+				Mailbox: mailbox,
+				Host:    host,
+			},
+		)
 	}
 	return l
 }

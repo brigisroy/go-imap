@@ -3,7 +3,7 @@ package imapserver_test
 import (
 	"testing"
 
-	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/brigisroy/go-imap/v2/imapserver"
 )
 
 var matchListTests = []struct {
@@ -45,7 +45,10 @@ func TestMatchList(t *testing.T) {
 	for _, test := range matchListTests {
 		result := imapserver.MatchList(test.name, delim, test.ref, test.pattern)
 		if result != test.result {
-			t.Errorf("matching name %q with pattern %q and reference %q returns %v, but expected %v", test.name, test.pattern, test.ref, result, test.result)
+			t.Errorf(
+				"matching name %q with pattern %q and reference %q returns %v, but expected %v", test.name,
+				test.pattern, test.ref, result, test.result,
+			)
 		}
 	}
 }

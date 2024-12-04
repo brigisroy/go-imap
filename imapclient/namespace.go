@@ -3,8 +3,8 @@ package imapclient
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // Namespace sends a NAMESPACE command.
@@ -71,14 +71,16 @@ func readNamespaceResponse(dec *imapwire.Decoder) (*imap.NamespaceData, error) {
 
 func readNamespace(dec *imapwire.Decoder) ([]imap.NamespaceDescriptor, error) {
 	var l []imap.NamespaceDescriptor
-	err := dec.ExpectNList(func() error {
-		descr, err := readNamespaceDescr(dec)
-		if err != nil {
-			return fmt.Errorf("in namespace-descr: %v", err)
-		}
-		l = append(l, *descr)
-		return nil
-	})
+	err := dec.ExpectNList(
+		func() error {
+			descr, err := readNamespaceDescr(dec)
+			if err != nil {
+				return fmt.Errorf("in namespace-descr: %v", err)
+			}
+			l = append(l, *descr)
+			return nil
+		},
+	)
 	return l, err
 }
 

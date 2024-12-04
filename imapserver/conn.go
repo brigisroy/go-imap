@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 const (
@@ -72,10 +72,12 @@ func (c *Conn) NetConn() net.Conn {
 
 // Bye terminates the IMAP connection.
 func (c *Conn) Bye(text string) error {
-	respErr := c.writeStatusResp("", &imap.StatusResponse{
-		Type: imap.StatusResponseTypeBye,
-		Text: text,
-	})
+	respErr := c.writeStatusResp(
+		"", &imap.StatusResponse{
+			Type: imap.StatusResponseTypeBye,
+			Text: text,
+		},
+	)
 	closeErr := c.conn.Close()
 	if respErr != nil {
 		return respErr
@@ -327,10 +329,12 @@ func (c *Conn) handleLogout(dec *imapwire.Decoder) error {
 
 	c.state = imap.ConnStateLogout
 
-	return c.writeStatusResp("", &imap.StatusResponse{
-		Type: imap.StatusResponseTypeBye,
-		Text: "Logging out",
-	})
+	return c.writeStatusResp(
+		"", &imap.StatusResponse{
+			Type: imap.StatusResponseTypeBye,
+			Text: "Logging out",
+		},
+	)
 }
 
 func (c *Conn) handleDelete(dec *imapwire.Decoder) error {
@@ -538,7 +542,9 @@ func writeCapabilityOK(enc *imapwire.Encoder, tag string, caps []imap.Cap, text 
 	return writeCapabilityStatus(enc, tag, imap.StatusResponseTypeOK, caps, text)
 }
 
-func writeCapabilityStatus(enc *imapwire.Encoder, tag string, typ imap.StatusResponseType, caps []imap.Cap, text string) error {
+func writeCapabilityStatus(
+	enc *imapwire.Encoder, tag string, typ imap.StatusResponseType, caps []imap.Cap, text string,
+) error {
 	if tag == "" {
 		tag = "*"
 	}

@@ -8,10 +8,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapclient"
-	"github.com/emersion/go-imap/v2/imapserver"
-	"github.com/emersion/go-imap/v2/imapserver/imapmemserver"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/imapclient"
+	"github.com/brigisroy/go-imap/v2/imapserver"
+	"github.com/brigisroy/go-imap/v2/imapserver/imapmemserver"
 )
 
 const (
@@ -91,19 +91,21 @@ func newMemClientServerPair(t *testing.T) (net.Conn, io.Closer) {
 		t.Fatalf("tls.X509KeyPair() = %v", err)
 	}
 
-	server := imapserver.New(&imapserver.Options{
-		NewSession: func(conn *imapserver.Conn) (imapserver.Session, *imapserver.GreetingData, error) {
-			return memServer.NewSession(), nil, nil
+	server := imapserver.New(
+		&imapserver.Options{
+			NewSession: func(conn *imapserver.Conn) (imapserver.Session, *imapserver.GreetingData, error) {
+				return memServer.NewSession(), nil, nil
+			},
+			TLSConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+			},
+			InsecureAuth: true,
+			Caps: imap.CapSet{
+				imap.CapIMAP4rev1: {},
+				imap.CapIMAP4rev2: {},
+			},
 		},
-		TLSConfig: &tls.Config{
-			Certificates: []tls.Certificate{cert},
-		},
-		InsecureAuth: true,
-		Caps: imap.CapSet{
-			imap.CapIMAP4rev1: {},
-			imap.CapIMAP4rev2: {},
-		},
-	})
+	)
 
 	ln, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
@@ -247,14 +249,16 @@ func TestFetch_closeUnreadBody(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	fetchCmd := client.Fetch(imap.SeqSetNum(1), &imap.FetchOptions{
-		BodySection: []*imap.FetchItemBodySection{
-			{
-				Specifier: imap.PartSpecifierNone,
-				Peek:      true,
+	fetchCmd := client.Fetch(
+		imap.SeqSetNum(1), &imap.FetchOptions{
+			BodySection: []*imap.FetchItemBodySection{
+				{
+					Specifier: imap.PartSpecifierNone,
+					Peek:      true,
+				},
 			},
 		},
-	})
+	)
 	if err := fetchCmd.Close(); err != nil {
 		t.Fatalf("UIDFetch().Close() = %v", err)
 	}

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/imapserver"
 )
 
 // Mailbox is an in-memory mailbox.
@@ -117,10 +117,12 @@ func (mbox *Mailbox) appendLiteral(r imap.LiteralReader, options *imap.AppendOpt
 }
 
 func (mbox *Mailbox) copyMsg(msg *message) *imap.AppendData {
-	return mbox.appendBytes(msg.buf, &imap.AppendOptions{
-		Time:  msg.t,
-		Flags: msg.flagList(),
-	})
+	return mbox.appendBytes(
+		msg.buf, &imap.AppendOptions{
+			Time:  msg.t,
+			Flags: msg.flagList(),
+		},
+	)
 }
 
 func (mbox *Mailbox) appendBytes(buf []byte, options *imap.AppendOptions) *imap.AppendData {
@@ -196,9 +198,11 @@ func (mbox *Mailbox) flagsLocked() []imap.Flag {
 		l = append(l, flag)
 	}
 
-	sort.Slice(l, func(i, j int) bool {
-		return l[i] < l[j]
-	})
+	sort.Slice(
+		l, func(i, j int) bool {
+			return l[i] < l[j]
+		},
+	)
 
 	return l
 }
@@ -293,23 +297,27 @@ func (mbox *MailboxView) Fetch(w *imapserver.FetchWriter, numSet imap.NumSet, op
 	}
 
 	var err error
-	mbox.forEach(numSet, func(seqNum uint32, msg *message) {
-		if err != nil {
-			return
-		}
+	mbox.forEach(
+		numSet, func(seqNum uint32, msg *message) {
+			if err != nil {
+				return
+			}
 
-		if markSeen {
-			msg.flags[canonicalFlag(imap.FlagSeen)] = struct{}{}
-			mbox.Mailbox.tracker.QueueMessageFlags(seqNum, msg.uid, msg.flagList(), nil)
-		}
+			if markSeen {
+				msg.flags[canonicalFlag(imap.FlagSeen)] = struct{}{}
+				mbox.Mailbox.tracker.QueueMessageFlags(seqNum, msg.uid, msg.flagList(), nil)
+			}
 
-		respWriter := w.CreateMessage(mbox.tracker.EncodeSeqNum(seqNum))
-		err = msg.fetch(respWriter, options)
-	})
+			respWriter := w.CreateMessage(mbox.tracker.EncodeSeqNum(seqNum))
+			err = msg.fetch(respWriter, options)
+		},
+	)
 	return err
 }
 
-func (mbox *MailboxView) Search(numKind imapserver.NumKind, criteria *imap.SearchCriteria, options *imap.SearchOptions) (*imap.SearchData, error) {
+func (mbox *MailboxView) Search(
+	numKind imapserver.NumKind, criteria *imap.SearchCriteria, options *imap.SearchOptions,
+) (*imap.SearchData, error) {
 	mbox.mutex.Lock()
 	defer mbox.mutex.Unlock()
 
@@ -392,11 +400,15 @@ func (mbox *MailboxView) staticSearchCriteria(criteria *imap.SearchCriteria) {
 	}
 }
 
-func (mbox *MailboxView) Store(w *imapserver.FetchWriter, numSet imap.NumSet, flags *imap.StoreFlags, options *imap.StoreOptions) error {
-	mbox.forEach(numSet, func(seqNum uint32, msg *message) {
-		msg.store(flags)
-		mbox.Mailbox.tracker.QueueMessageFlags(seqNum, msg.uid, msg.flagList(), mbox.tracker)
-	})
+func (mbox *MailboxView) Store(
+	w *imapserver.FetchWriter, numSet imap.NumSet, flags *imap.StoreFlags, options *imap.StoreOptions,
+) error {
+	mbox.forEach(
+		numSet, func(seqNum uint32, msg *message) {
+			msg.store(flags)
+			mbox.Mailbox.tracker.QueueMessageFlags(seqNum, msg.uid, msg.flagList(), mbox.tracker)
+		},
+	)
 	if !flags.Silent {
 		return mbox.Fetch(w, numSet, &imap.FetchOptions{Flags: true})
 	}

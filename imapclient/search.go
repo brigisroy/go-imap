@@ -6,9 +6,9 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func returnSearchOptions(options *imap.SearchOptions) []string {
@@ -32,7 +32,9 @@ func returnSearchOptions(options *imap.SearchOptions) []string {
 	return l
 }
 
-func (c *Client) search(numKind imapwire.NumKind, criteria *imap.SearchCriteria, options *imap.SearchOptions) *SearchCommand {
+func (c *Client) search(
+	numKind imapwire.NumKind, criteria *imap.SearchCriteria, options *imap.SearchOptions,
+) *SearchCommand {
 	// The IMAP4rev2 SEARCH charset defaults to UTF-8. When UTF8=ACCEPT is
 	// enabled, specifying any CHARSET is invalid. For IMAP4rev1 the default is
 	// undefined and only US-ASCII support is required. What's more, some
@@ -59,9 +61,11 @@ func (c *Client) search(numKind imapwire.NumKind, criteria *imap.SearchCriteria,
 	cmd.data.All = all
 	enc := c.beginCommand(uidCmdName("SEARCH", numKind), cmd)
 	if returnOpts := returnSearchOptions(options); len(returnOpts) > 0 {
-		enc.SP().Atom("RETURN").SP().List(len(returnOpts), func(i int) {
-			enc.Atom(returnOpts[i])
-		})
+		enc.SP().Atom("RETURN").SP().List(
+			len(returnOpts), func(i int) {
+				enc.Atom(returnOpts[i])
+			},
+		)
 	}
 	enc.SP()
 	if charset != "" {
@@ -128,17 +132,19 @@ func (c *Client) handleESearch() error {
 	if err != nil {
 		return err
 	}
-	cmd := c.findPendingCmdFunc(func(anyCmd command) bool {
-		cmd, ok := anyCmd.(*SearchCommand)
-		if !ok {
-			return false
-		}
-		if tag != "" {
-			return cmd.tag == tag
-		} else {
-			return true
-		}
-	})
+	cmd := c.findPendingCmdFunc(
+		func(anyCmd command) bool {
+			cmd, ok := anyCmd.(*SearchCommand)
+			if !ok {
+				return false
+			}
+			if tag != "" {
+				return cmd.tag == tag
+			} else {
+				return true
+			}
+		},
+	)
 	if cmd != nil {
 		cmd := cmd.(*SearchCommand)
 		cmd.data = *data

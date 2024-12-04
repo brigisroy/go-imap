@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 const envelopeDateLayout = "Mon, 02 Jan 2006 15:04:05 -0700"
@@ -31,17 +31,19 @@ func (c *Conn) handleFetch(dec *imapwire.Decoder, numKind NumKind) error {
 
 	var options imap.FetchOptions
 	writerOptions := fetchWriterOptions{obsolete: make(map[*imap.FetchItemBodySection]string)}
-	isList, err := dec.List(func() error {
-		name, err := readFetchAttName(dec)
-		if err != nil {
-			return err
-		}
-		switch name {
-		case "ALL", "FAST", "FULL":
-			return newClientBugError("FETCH macros are not allowed in a list")
-		}
-		return handleFetchAtt(dec, name, &options, &writerOptions)
-	})
+	isList, err := dec.List(
+		func() error {
+			name, err := readFetchAttName(dec)
+			if err != nil {
+				return err
+			}
+			switch name {
+			case "ALL", "FAST", "FULL":
+				return newClientBugError("FETCH macros are not allowed in a list")
+			}
+			return handleFetchAtt(dec, name, &options, &writerOptions)
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -94,7 +96,9 @@ func (c *Conn) handleFetch(dec *imapwire.Decoder, numKind NumKind) error {
 	return nil
 }
 
-func handleFetchAtt(dec *imapwire.Decoder, attName string, options *imap.FetchOptions, writerOptions *fetchWriterOptions) error {
+func handleFetchAtt(
+	dec *imapwire.Decoder, attName string, options *imap.FetchOptions, writerOptions *fetchWriterOptions,
+) error {
 	switch attName {
 	case "BODYSTRUCTURE":
 		handleFetchBodyStructure(options, writerOptions, true)
@@ -269,14 +273,16 @@ func readSectionPart(dec *imapwire.Decoder) (part []int, dot bool) {
 
 func readHeaderList(dec *imapwire.Decoder) ([]string, error) {
 	var l []string
-	err := dec.ExpectList(func() error {
-		var s string
-		if !dec.ExpectAString(&s) {
-			return dec.Err()
-		}
-		l = append(l, s)
-		return nil
-	})
+	err := dec.ExpectList(
+		func() error {
+			var s string
+			if !dec.ExpectAString(&s) {
+				return dec.Err()
+			}
+			l = append(l, s)
+			return nil
+		},
+	)
 	return l, err
 }
 
@@ -357,9 +363,11 @@ func (w *FetchResponseWriter) WriteUID(uid imap.UID) {
 // WriteFlags writes the message's flags.
 func (w *FetchResponseWriter) WriteFlags(flags []imap.Flag) {
 	w.writeItemSep()
-	w.enc.Atom("FLAGS").SP().List(len(flags), func(i int) {
-		w.enc.Flag(flags[i])
-	})
+	w.enc.Atom("FLAGS").SP().List(
+		len(flags), func(i int) {
+			w.enc.Flag(flags[i])
+		},
+	)
 }
 
 // WriteRFC822Size writes the message's full size.
@@ -412,9 +420,11 @@ func writeItemBodySection(enc *imapwire.Encoder, section *imap.FetchItemBodySect
 		}
 
 		if len(headerList) > 0 {
-			enc.SP().List(len(headerList), func(i int) {
-				enc.String(headerList[i])
-			})
+			enc.SP().List(
+				len(headerList), func(i int) {
+					enc.String(headerList[i])
+				},
+			)
 		}
 	}
 	enc.Special(']')
@@ -557,16 +567,18 @@ func writeAddressList(enc *imapwire.Encoder, l []imap.Address) {
 		return
 	}
 
-	enc.List(len(l), func(i int) {
-		addr := l[i]
-		enc.Special('(')
-		writeNString(enc, mime.QEncoding.Encode("utf-8", addr.Name))
-		enc.SP().NIL().SP()
-		writeNString(enc, addr.Mailbox)
-		enc.SP()
-		writeNString(enc, addr.Host)
-		enc.Special(')')
-	})
+	enc.List(
+		len(l), func(i int) {
+			addr := l[i]
+			enc.Special('(')
+			writeNString(enc, mime.QEncoding.Encode("utf-8", addr.Name))
+			enc.SP().NIL().SP()
+			writeNString(enc, addr.Mailbox)
+			enc.SP()
+			writeNString(enc, addr.Host)
+			enc.Special(')')
+		},
+	)
 }
 
 func writeNString(enc *imapwire.Encoder, s string) {
@@ -682,11 +694,13 @@ func writeBodyFldParam(enc *imapwire.Encoder, params map[string]string) {
 	}
 	sort.Strings(l)
 
-	enc.List(len(l), func(i int) {
-		k := l[i]
-		v := params[k]
-		enc.String(k).SP().String(v)
-	})
+	enc.List(
+		len(l), func(i int) {
+			k := l[i]
+			v := params[k]
+			enc.String(k).SP().String(v)
+		},
+	)
 }
 
 func writeBodyFldDsp(enc *imapwire.Encoder, disp *imap.BodyStructureDisposition) {
@@ -704,8 +718,10 @@ func writeBodyFldLang(enc *imapwire.Encoder, l []string) {
 	if l == nil {
 		enc.NIL()
 	} else {
-		enc.List(len(l), func(i int) {
-			enc.String(l[i])
-		})
+		enc.List(
+			len(l), func(i int) {
+				enc.String(l[i])
+			},
+		)
 	}
 }

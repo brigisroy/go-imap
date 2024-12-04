@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/emersion/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2"
 )
 
 func TestSearch(t *testing.T) {
@@ -13,10 +13,12 @@ func TestSearch(t *testing.T) {
 	defer server.Close()
 
 	criteria := imap.SearchCriteria{
-		Header: []imap.SearchCriteriaHeaderField{{
-			Key:   "Message-Id",
-			Value: "<191101702316132@example.com>",
-		}},
+		Header: []imap.SearchCriteriaHeaderField{
+			{
+				Key:   "Message-Id",
+				Value: "<191101702316132@example.com>",
+			},
+		},
 	}
 	data, err := client.Search(&criteria, nil).Wait()
 	if err != nil {
@@ -43,10 +45,12 @@ func TestESearch(t *testing.T) {
 	}
 
 	criteria := imap.SearchCriteria{
-		Header: []imap.SearchCriteriaHeaderField{{
-			Key:   "Message-Id",
-			Value: "<191101702316132@example.com>",
-		}},
+		Header: []imap.SearchCriteriaHeaderField{
+			{
+				Key:   "Message-Id",
+				Value: "<191101702316132@example.com>",
+			},
+		},
 	}
 	options := imap.SearchOptions{
 		ReturnCount: true,

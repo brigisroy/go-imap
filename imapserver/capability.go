@@ -1,8 +1,8 @@
 package imapserver
 
 import (
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) handleCapability(dec *imapwire.Decoder) error {
@@ -29,19 +29,23 @@ func (c *Conn) availableCaps() []imap.Cap {
 	available := c.server.options.caps()
 
 	var caps []imap.Cap
-	addAvailableCaps(&caps, available, []imap.Cap{
-		imap.CapIMAP4rev2,
-		imap.CapIMAP4rev1,
-	})
+	addAvailableCaps(
+		&caps, available, []imap.Cap{
+			imap.CapIMAP4rev2,
+			imap.CapIMAP4rev1,
+		},
+	)
 	if len(caps) == 0 {
 		panic("imapserver: must support at least IMAP4rev1 or IMAP4rev2")
 	}
 
 	if available.Has(imap.CapIMAP4rev1) {
-		caps = append(caps, []imap.Cap{
-			imap.CapSASLIR,
-			imap.CapLiteralMinus,
-		}...)
+		caps = append(
+			caps, []imap.Cap{
+				imap.CapSASLIR,
+				imap.CapLiteralMinus,
+			}...,
+		)
 	}
 	if c.canStartTLS() {
 		caps = append(caps, imap.CapStartTLS)
@@ -59,29 +63,35 @@ func (c *Conn) availableCaps() []imap.Cap {
 	}
 	if c.state == imap.ConnStateAuthenticated || c.state == imap.ConnStateSelected {
 		if available.Has(imap.CapIMAP4rev1) {
-			caps = append(caps, []imap.Cap{
-				imap.CapUnselect,
-				imap.CapEnable,
-				imap.CapIdle,
-				imap.CapUTF8Accept,
-			}...)
-			addAvailableCaps(&caps, available, []imap.Cap{
-				imap.CapNamespace,
-				imap.CapUIDPlus,
-				imap.CapESearch,
-				imap.CapSearchRes,
-				imap.CapListExtended,
-				imap.CapListStatus,
-				imap.CapMove,
-				imap.CapStatusSize,
-				imap.CapBinary,
-			})
+			caps = append(
+				caps, []imap.Cap{
+					imap.CapUnselect,
+					imap.CapEnable,
+					imap.CapIdle,
+					imap.CapUTF8Accept,
+				}...,
+			)
+			addAvailableCaps(
+				&caps, available, []imap.Cap{
+					imap.CapNamespace,
+					imap.CapUIDPlus,
+					imap.CapESearch,
+					imap.CapSearchRes,
+					imap.CapListExtended,
+					imap.CapListStatus,
+					imap.CapMove,
+					imap.CapStatusSize,
+					imap.CapBinary,
+				},
+			)
 		}
-		addAvailableCaps(&caps, available, []imap.Cap{
-			imap.CapCreateSpecialUse,
-			imap.CapLiteralPlus,
-			imap.CapUnauthenticate,
-		})
+		addAvailableCaps(
+			&caps, available, []imap.Cap{
+				imap.CapCreateSpecialUse,
+				imap.CapLiteralPlus,
+				imap.CapUnauthenticate,
+			},
+		)
 	}
 	return caps
 }

@@ -1,7 +1,7 @@
 package imapclient
 
 import (
-	"github.com/emersion/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2"
 )
 
 // Create sends a CREATE command.
@@ -12,9 +12,11 @@ func (c *Client) Create(mailbox string, options *imap.CreateOptions) *Command {
 	enc := c.beginCommand("CREATE", cmd)
 	enc.SP().Mailbox(mailbox)
 	if options != nil && len(options.SpecialUse) > 0 {
-		enc.SP().Special('(').Atom("USE").SP().List(len(options.SpecialUse), func(i int) {
-			enc.MailboxAttr(options.SpecialUse[i])
-		}).Special(')')
+		enc.SP().Special('(').Atom("USE").SP().List(
+			len(options.SpecialUse), func(i int) {
+				enc.MailboxAttr(options.SpecialUse[i])
+			},
+		).Special(')')
 	}
 	enc.end()
 	return cmd

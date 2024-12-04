@@ -1,8 +1,8 @@
 package imapclient
 
 import (
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 type SortKey string
@@ -31,13 +31,15 @@ type SortOptions struct {
 func (c *Client) sort(numKind imapwire.NumKind, options *SortOptions) *SortCommand {
 	cmd := &SortCommand{}
 	enc := c.beginCommand(uidCmdName("SORT", numKind), cmd)
-	enc.SP().List(len(options.SortCriteria), func(i int) {
-		criterion := options.SortCriteria[i]
-		if criterion.Reverse {
-			enc.Atom("REVERSE").SP()
-		}
-		enc.Atom(string(criterion.Key))
-	})
+	enc.SP().List(
+		len(options.SortCriteria), func(i int) {
+			criterion := options.SortCriteria[i]
+			if criterion.Reverse {
+				enc.Atom("REVERSE").SP()
+			}
+			enc.Atom(string(criterion.Key))
+		},
+	)
 	enc.SP().Atom("UTF-8").SP()
 	writeSearchKey(enc.Encoder, options.SearchCriteria)
 	enc.end()

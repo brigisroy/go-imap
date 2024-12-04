@@ -3,8 +3,8 @@ package imapserver
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) handleSelect(tag string, dec *imapwire.Decoder, readOnly bool) error {
@@ -22,11 +22,13 @@ func (c *Conn) handleSelect(tag string, dec *imapwire.Decoder, readOnly bool) er
 			return err
 		}
 		c.state = imap.ConnStateAuthenticated
-		err := c.writeStatusResp("", &imap.StatusResponse{
-			Type: imap.StatusResponseTypeOK,
-			Code: "CLOSED",
-			Text: "Previous mailbox is now closed",
-		})
+		err := c.writeStatusResp(
+			"", &imap.StatusResponse{
+				Type: imap.StatusResponseTypeOK,
+				Code: "CLOSED",
+				Text: "Previous mailbox is now closed",
+			},
+		)
 		if err != nil {
 			return err
 		}
@@ -78,11 +80,13 @@ func (c *Conn) handleSelect(tag string, dec *imapwire.Decoder, readOnly bool) er
 		cmdName = "SELECT"
 		code = "READ-WRITE"
 	}
-	return c.writeStatusResp(tag, &imap.StatusResponse{
-		Type: imap.StatusResponseTypeOK,
-		Code: code,
-		Text: fmt.Sprintf("%v completed", cmdName),
-	})
+	return c.writeStatusResp(
+		tag, &imap.StatusResponse{
+			Type: imap.StatusResponseTypeOK,
+			Code: code,
+			Text: fmt.Sprintf("%v completed", cmdName),
+		},
+	)
 }
 
 func (c *Conn) handleUnselect(dec *imapwire.Decoder, expunge bool) error {
@@ -142,9 +146,11 @@ func (c *Conn) writeUIDNext(uidNext imap.UID) error {
 func (c *Conn) writeFlags(flags []imap.Flag) error {
 	enc := newResponseEncoder(c)
 	defer enc.end()
-	enc.Atom("*").SP().Atom("FLAGS").SP().List(len(flags), func(i int) {
-		enc.Flag(flags[i])
-	})
+	enc.Atom("*").SP().Atom("FLAGS").SP().List(
+		len(flags), func(i int) {
+			enc.Flag(flags[i])
+		},
+	)
 	return enc.CRLF()
 }
 
@@ -152,9 +158,11 @@ func (c *Conn) writePermanentFlags(flags []imap.Flag) error {
 	enc := newResponseEncoder(c)
 	defer enc.end()
 	enc.Atom("*").SP().Atom("OK").SP()
-	enc.Special('[').Atom("PERMANENTFLAGS").SP().List(len(flags), func(i int) {
-		enc.Flag(flags[i])
-	}).Special(']')
+	enc.Special('[').Atom("PERMANENTFLAGS").SP().List(
+		len(flags), func(i int) {
+			enc.Flag(flags[i])
+		},
+	).Special(']')
 	enc.SP().Text("Permanent flags")
 	return enc.CRLF()
 }

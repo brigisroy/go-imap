@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func statusItems(options *imap.StatusOptions) []string {
@@ -42,9 +42,11 @@ func (c *Client) Status(mailbox string, options *imap.StatusOptions) *StatusComm
 	enc := c.beginCommand("STATUS", cmd)
 	enc.SP().Mailbox(mailbox).SP()
 	items := statusItems(options)
-	enc.List(len(items), func(i int) {
-		enc.Atom(items[i])
-	})
+	enc.List(
+		len(items), func(i int) {
+			enc.Atom(items[i])
+		},
+	)
 	enc.end()
 	return cmd
 }
@@ -55,16 +57,18 @@ func (c *Client) handleStatus() error {
 		return fmt.Errorf("in status: %v", err)
 	}
 
-	cmd := c.findPendingCmdFunc(func(cmd command) bool {
-		switch cmd := cmd.(type) {
-		case *StatusCommand:
-			return cmd.mailbox == data.Mailbox
-		case *ListCommand:
-			return cmd.returnStatus && cmd.pendingData != nil && cmd.pendingData.Mailbox == data.Mailbox
-		default:
-			return false
-		}
-	})
+	cmd := c.findPendingCmdFunc(
+		func(cmd command) bool {
+			switch cmd := cmd.(type) {
+			case *StatusCommand:
+				return cmd.mailbox == data.Mailbox
+			case *ListCommand:
+				return cmd.returnStatus && cmd.pendingData != nil && cmd.pendingData.Mailbox == data.Mailbox
+			default:
+				return false
+			}
+		},
+	)
 	switch cmd := cmd.(type) {
 	case *StatusCommand:
 		cmd.data = *data
@@ -95,12 +99,14 @@ func readStatus(dec *imapwire.Decoder) (*imap.StatusData, error) {
 		return nil, dec.Err()
 	}
 
-	err := dec.ExpectList(func() error {
-		if err := readStatusAttVal(dec, &data); err != nil {
-			return fmt.Errorf("in status-att-val: %v", dec.Err())
-		}
-		return nil
-	})
+	err := dec.ExpectList(
+		func() error {
+			if err := readStatusAttVal(dec, &data); err != nil {
+				return fmt.Errorf("in status-att-val: %v", dec.Err())
+			}
+			return nil
+		},
+	)
 	return &data, err
 }
 

@@ -3,8 +3,8 @@ package imapclient
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // ThreadOptions contains options for the THREAD command.
@@ -68,18 +68,20 @@ type ThreadData struct {
 
 func readThreadList(dec *imapwire.Decoder) (*ThreadData, error) {
 	var data ThreadData
-	err := dec.ExpectList(func() error {
-		var num uint32
-		if len(data.SubThreads) == 0 && dec.Number(&num) {
-			data.Chain = append(data.Chain, num)
-		} else {
-			sub, err := readThreadList(dec)
-			if err != nil {
-				return err
+	err := dec.ExpectList(
+		func() error {
+			var num uint32
+			if len(data.SubThreads) == 0 && dec.Number(&num) {
+				data.Chain = append(data.Chain, num)
+			} else {
+				sub, err := readThreadList(dec)
+				if err != nil {
+					return err
+				}
+				data.SubThreads = append(data.SubThreads, *sub)
 			}
-			data.SubThreads = append(data.SubThreads, *sub)
-		}
-		return nil
-	})
+			return nil
+		},
+	)
 	return &data, err
 }

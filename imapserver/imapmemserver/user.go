@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/imapserver"
 )
 
 const mailboxDelim rune = '/'
@@ -71,10 +71,12 @@ func (u *User) List(w *imapserver.ListWriter, ref string, patterns []string, opt
 	// TODO: fail if ref doesn't exist
 
 	if len(patterns) == 0 {
-		return w.WriteList(&imap.ListData{
-			Attrs: []imap.MailboxAttr{imap.MailboxAttrNoSelect},
-			Delim: mailboxDelim,
-		})
+		return w.WriteList(
+			&imap.ListData{
+				Attrs: []imap.MailboxAttr{imap.MailboxAttrNoSelect},
+				Delim: mailboxDelim,
+			},
+		)
 	}
 
 	var l []imap.ListData
@@ -96,9 +98,11 @@ func (u *User) List(w *imapserver.ListWriter, ref string, patterns []string, opt
 		}
 	}
 
-	sort.Slice(l, func(i, j int) bool {
-		return l[i].Mailbox < l[j].Mailbox
-	})
+	sort.Slice(
+		l, func(i, j int) bool {
+			return l[i].Mailbox < l[j].Mailbox
+		},
+	)
 
 	for _, data := range l {
 		if err := w.WriteList(&data); err != nil {

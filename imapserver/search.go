@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) handleSearch(tag string, dec *imapwire.Decoder, numKind NumKind) error {
@@ -161,33 +161,37 @@ func readSearchReturnOpts(dec *imapwire.Decoder, options *imap.SearchOptions) er
 	if !dec.ExpectSP() {
 		return dec.Err()
 	}
-	return dec.ExpectList(func() error {
-		var name string
-		if !dec.ExpectAtom(&name) {
-			return dec.Err()
-		}
-		switch strings.ToUpper(name) {
-		case "MIN":
-			options.ReturnMin = true
-		case "MAX":
-			options.ReturnMax = true
-		case "ALL":
-			options.ReturnAll = true
-		case "COUNT":
-			options.ReturnCount = true
-		case "SAVE":
-			options.ReturnSave = true
-		default:
-			return newClientBugError("unknown SEARCH RETURN option")
-		}
-		return nil
-	})
+	return dec.ExpectList(
+		func() error {
+			var name string
+			if !dec.ExpectAtom(&name) {
+				return dec.Err()
+			}
+			switch strings.ToUpper(name) {
+			case "MIN":
+				options.ReturnMin = true
+			case "MAX":
+				options.ReturnMax = true
+			case "ALL":
+				options.ReturnAll = true
+			case "COUNT":
+				options.ReturnCount = true
+			case "SAVE":
+				options.ReturnSave = true
+			default:
+				return newClientBugError("unknown SEARCH RETURN option")
+			}
+			return nil
+		},
+	)
 }
 
 func maybeReadSearchKeyAtom(dec *imapwire.Decoder, ptr *string) bool {
-	return dec.Func(ptr, func(ch byte) bool {
-		return ch == '*' || imapwire.IsAtomChar(ch)
-	})
+	return dec.Func(
+		ptr, func(ch byte) bool {
+			return ch == '*' || imapwire.IsAtomChar(ch)
+		},
+	)
 }
 
 func readSearchKey(criteria *imap.SearchCriteria, dec *imapwire.Decoder) error {
@@ -195,9 +199,11 @@ func readSearchKey(criteria *imap.SearchCriteria, dec *imapwire.Decoder) error {
 	if maybeReadSearchKeyAtom(dec, &key) {
 		return readSearchKeyWithAtom(criteria, dec, key)
 	}
-	return dec.ExpectList(func() error {
-		return readSearchKey(criteria, dec)
-	})
+	return dec.ExpectList(
+		func() error {
+			return readSearchKey(criteria, dec)
+		},
+	)
 }
 
 func readSearchKeyWithAtom(criteria *imap.SearchCriteria, dec *imapwire.Decoder, key string) error {
@@ -240,19 +246,23 @@ func readSearchKeyWithAtom(criteria *imap.SearchCriteria, dec *imapwire.Decoder,
 		if !dec.ExpectSP() || !dec.ExpectAString(&value) {
 			return dec.Err()
 		}
-		criteria.Header = append(criteria.Header, imap.SearchCriteriaHeaderField{
-			Key:   strings.Title(strings.ToLower(key)),
-			Value: value,
-		})
+		criteria.Header = append(
+			criteria.Header, imap.SearchCriteriaHeaderField{
+				Key:   strings.Title(strings.ToLower(key)),
+				Value: value,
+			},
+		)
 	case "HEADER":
 		var key, value string
 		if !dec.ExpectSP() || !dec.ExpectAString(&key) || !dec.ExpectSP() || !dec.ExpectAString(&value) {
 			return dec.Err()
 		}
-		criteria.Header = append(criteria.Header, imap.SearchCriteriaHeaderField{
-			Key:   key,
-			Value: value,
-		})
+		criteria.Header = append(
+			criteria.Header, imap.SearchCriteriaHeaderField{
+				Key:   key,
+				Value: value,
+			},
+		)
 	case "SINCE", "BEFORE", "ON", "SENTSINCE", "SENTBEFORE", "SENTON":
 		if !dec.ExpectSP() {
 			return dec.Err()

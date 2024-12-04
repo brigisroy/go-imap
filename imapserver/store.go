@@ -3,9 +3,9 @@ package imapserver
 import (
 	"strings"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) handleStore(dec *imapwire.Decoder, numKind NumKind) error {
@@ -13,18 +13,22 @@ func (c *Conn) handleStore(dec *imapwire.Decoder, numKind NumKind) error {
 		numSet imap.NumSet
 		item   string
 	)
-	if !dec.ExpectSP() || !dec.ExpectNumSet(numKind.wire(), &numSet) || !dec.ExpectSP() || !dec.ExpectAtom(&item) || !dec.ExpectSP() {
+	if !dec.ExpectSP() || !dec.ExpectNumSet(
+		numKind.wire(), &numSet,
+	) || !dec.ExpectSP() || !dec.ExpectAtom(&item) || !dec.ExpectSP() {
 		return dec.Err()
 	}
 	var flags []imap.Flag
-	isList, err := dec.List(func() error {
-		flag, err := internal.ExpectFlag(dec)
-		if err != nil {
-			return err
-		}
-		flags = append(flags, flag)
-		return nil
-	})
+	isList, err := dec.List(
+		func() error {
+			flag, err := internal.ExpectFlag(dec)
+			if err != nil {
+				return err
+			}
+			flags = append(flags, flag)
+			return nil
+		},
+	)
 	if err != nil {
 		return err
 	} else if !isList {
@@ -70,9 +74,11 @@ func (c *Conn) handleStore(dec *imapwire.Decoder, numKind NumKind) error {
 
 	w := &FetchWriter{conn: c}
 	options := imap.StoreOptions{}
-	return c.session.Store(w, numSet, &imap.StoreFlags{
-		Op:     op,
-		Silent: silent,
-		Flags:  flags,
-	}, &options)
+	return c.session.Store(
+		w, numSet, &imap.StoreFlags{
+			Op:     op,
+			Silent: silent,
+			Flags:  flags,
+		}, &options,
+	)
 }

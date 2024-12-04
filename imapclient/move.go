@@ -1,8 +1,8 @@
 package imapclient
 
 import (
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // Move sends a MOVE command.
@@ -23,11 +23,13 @@ func (c *Client) Move(numSet imap.NumSet, mailbox string) *MoveCommand {
 	enc.end()
 
 	if cmdName == "COPY" {
-		cmd.store = c.Store(numSet, &imap.StoreFlags{
-			Op:     imap.StoreFlagsAdd,
-			Silent: true,
-			Flags:  []imap.Flag{imap.FlagDeleted},
-		}, nil)
+		cmd.store = c.Store(
+			numSet, &imap.StoreFlags{
+				Op:     imap.StoreFlagsAdd,
+				Silent: true,
+				Flags:  []imap.Flag{imap.FlagDeleted},
+			}, nil,
+		)
 		if uidSet, ok := numSet.(imap.UIDSet); ok && c.Caps().Has(imap.CapUIDPlus) {
 			cmd.expunge = c.UIDExpunge(uidSet)
 		} else {

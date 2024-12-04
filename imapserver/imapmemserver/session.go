@@ -1,8 +1,8 @@
 package imapmemserver
 
 import (
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/imapserver"
 )
 
 type (
@@ -66,11 +66,13 @@ func (sess *UserSession) Copy(numSet imap.NumSet, destName string) (*imap.CopyDa
 	}
 
 	var sourceUIDs, destUIDs imap.UIDSet
-	sess.mailbox.forEach(numSet, func(seqNum uint32, msg *message) {
-		appendData := dest.copyMsg(msg)
-		sourceUIDs.AddNum(msg.uid)
-		destUIDs.AddNum(appendData.UID)
-	})
+	sess.mailbox.forEach(
+		numSet, func(seqNum uint32, msg *message) {
+			appendData := dest.copyMsg(msg)
+			sourceUIDs.AddNum(msg.uid)
+			destUIDs.AddNum(appendData.UID)
+		},
+	)
 
 	return &imap.CopyData{
 		UIDValidity: dest.uidValidity,
@@ -99,19 +101,23 @@ func (sess *UserSession) Move(w *imapserver.MoveWriter, numSet imap.NumSet, dest
 
 	var sourceUIDs, destUIDs imap.UIDSet
 	expunged := make(map[*message]struct{})
-	sess.mailbox.forEachLocked(numSet, func(seqNum uint32, msg *message) {
-		appendData := dest.copyMsg(msg)
-		sourceUIDs.AddNum(msg.uid)
-		destUIDs.AddNum(appendData.UID)
-		expunged[msg] = struct{}{}
-	})
+	sess.mailbox.forEachLocked(
+		numSet, func(seqNum uint32, msg *message) {
+			appendData := dest.copyMsg(msg)
+			sourceUIDs.AddNum(msg.uid)
+			destUIDs.AddNum(appendData.UID)
+			expunged[msg] = struct{}{}
+		},
+	)
 	seqNums := sess.mailbox.expungeLocked(expunged)
 
-	err = w.WriteCopyData(&imap.CopyData{
-		UIDValidity: dest.uidValidity,
-		SourceUIDs:  sourceUIDs,
-		DestUIDs:    destUIDs,
-	})
+	err = w.WriteCopyData(
+		&imap.CopyData{
+			UIDValidity: dest.uidValidity,
+			SourceUIDs:  sourceUIDs,
+			DestUIDs:    destUIDs,
+		},
+	)
 	if err != nil {
 		return err
 	}

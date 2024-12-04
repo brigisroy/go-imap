@@ -3,8 +3,8 @@ package imapserver
 import (
 	"strings"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) handleStatus(dec *imapwire.Decoder) error {
@@ -15,15 +15,17 @@ func (c *Conn) handleStatus(dec *imapwire.Decoder) error {
 
 	var options imap.StatusOptions
 	recent := false
-	err := dec.ExpectList(func() error {
-		isRecent, err := readStatusItem(dec, &options)
-		if err != nil {
-			return err
-		} else if isRecent {
-			recent = true
-		}
-		return nil
-	})
+	err := dec.ExpectList(
+		func() error {
+			isRecent, err := readStatusItem(dec, &options)
+			if err != nil {
+				return err
+			} else if isRecent {
+				recent = true
+			}
+			return nil
+		},
+	)
 	if err != nil {
 		return err
 	}

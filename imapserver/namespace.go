@@ -1,8 +1,8 @@
 package imapserver
 
 import (
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) handleNamespace(dec *imapwire.Decoder) error {
@@ -41,14 +41,16 @@ func writeNamespace(enc *imapwire.Encoder, l []imap.NamespaceDescriptor) {
 		return
 	}
 
-	enc.List(len(l), func(i int) {
-		descr := l[i]
-		enc.Special('(').String(descr.Prefix).SP()
-		if descr.Delim == 0 {
-			enc.NIL()
-		} else {
-			enc.Quoted(string(descr.Delim))
-		}
-		enc.Special(')')
-	})
+	enc.List(
+		len(l), func(i int) {
+			descr := l[i]
+			enc.Special('(').String(descr.Prefix).SP()
+			if descr.Delim == 0 {
+				enc.NIL()
+			} else {
+				enc.Quoted(string(descr.Delim))
+			}
+			enc.Special(')')
+		},
+	)
 }

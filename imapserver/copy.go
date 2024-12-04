@@ -1,8 +1,8 @@
 package imapserver
 
 import (
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) handleCopy(tag string, dec *imapwire.Decoder, numKind NumKind) error {
@@ -48,7 +48,9 @@ func (c *Conn) writeCopyOK(tag string, data *imap.CopyData) error {
 }
 
 func readCopy(numKind NumKind, dec *imapwire.Decoder) (numSet imap.NumSet, dest string, err error) {
-	if !dec.ExpectSP() || !dec.ExpectNumSet(numKind.wire(), &numSet) || !dec.ExpectSP() || !dec.ExpectMailbox(&dest) || !dec.ExpectCRLF() {
+	if !dec.ExpectSP() || !dec.ExpectNumSet(
+		numKind.wire(), &numSet,
+	) || !dec.ExpectSP() || !dec.ExpectMailbox(&dest) || !dec.ExpectCRLF() {
 		return nil, "", dec.Err()
 	}
 	return numSet, dest, nil

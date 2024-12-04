@@ -3,7 +3,7 @@ package imapclient_test
 import (
 	"testing"
 
-	"github.com/emersion/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2"
 )
 
 func testCreate(t *testing.T, name string, utf8Accept bool) {
@@ -36,22 +36,32 @@ func testCreate(t *testing.T, name string, utf8Accept bool) {
 }
 
 func TestCreate(t *testing.T) {
-	t.Run("basic", func(t *testing.T) {
-		testCreate(t, "Test mailbox", false)
-	})
+	t.Run(
+		"basic", func(t *testing.T) {
+			testCreate(t, "Test mailbox", false)
+		},
+	)
 
-	t.Run("unicode_utf7", func(t *testing.T) {
-		testCreate(t, "Cafè", false)
-	})
-	t.Run("unicode_utf8", func(t *testing.T) {
-		testCreate(t, "Cafè", true)
-	})
+	t.Run(
+		"unicode_utf7", func(t *testing.T) {
+			testCreate(t, "Cafè", false)
+		},
+	)
+	t.Run(
+		"unicode_utf8", func(t *testing.T) {
+			testCreate(t, "Cafè", true)
+		},
+	)
 
 	// '&' is the UTF-7 escape character
-	t.Run("ampersand_utf7", func(t *testing.T) {
-		testCreate(t, "Angus & Julia", false)
-	})
-	t.Run("ampersand_utf8", func(t *testing.T) {
-		testCreate(t, "Angus & Julia", true)
-	})
+	t.Run(
+		"ampersand_utf7", func(t *testing.T) {
+			testCreate(t, "Angus & Julia", false)
+		},
+	)
+	t.Run(
+		"ampersand_utf8", func(t *testing.T) {
+			testCreate(t, "Angus & Julia", true)
+		},
+	)
 }

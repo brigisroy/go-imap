@@ -5,9 +5,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func getSelectOpts(options *imap.ListOptions) []string {
@@ -68,22 +68,28 @@ func (c *Client) List(ref, pattern string, options *imap.ListOptions) *ListComma
 	}
 	enc := c.beginCommand("LIST", cmd)
 	if selectOpts := getSelectOpts(options); len(selectOpts) > 0 {
-		enc.SP().List(len(selectOpts), func(i int) {
-			enc.Atom(selectOpts[i])
-		})
+		enc.SP().List(
+			len(selectOpts), func(i int) {
+				enc.Atom(selectOpts[i])
+			},
+		)
 	}
 	enc.SP().Mailbox(ref).SP().Mailbox(pattern)
 	if returnOpts := getReturnOpts(options); len(returnOpts) > 0 {
-		enc.SP().Atom("RETURN").SP().List(len(returnOpts), func(i int) {
-			opt := returnOpts[i]
-			enc.Atom(opt)
-			if opt == "STATUS" {
-				returnStatus := statusItems(options.ReturnStatus)
-				enc.SP().List(len(returnStatus), func(j int) {
-					enc.Atom(returnStatus[j])
-				})
-			}
-		})
+		enc.SP().Atom("RETURN").SP().List(
+			len(returnOpts), func(i int) {
+				opt := returnOpts[i]
+				enc.Atom(opt)
+				if opt == "STATUS" {
+					returnStatus := statusItems(options.ReturnStatus)
+					enc.SP().List(
+						len(returnStatus), func(j int) {
+							enc.Atom(returnStatus[j])
+						},
+					)
+				}
+			},
+		)
 	}
 	enc.end()
 	return cmd
@@ -95,16 +101,18 @@ func (c *Client) handleList() error {
 		return fmt.Errorf("in LIST: %v", err)
 	}
 
-	cmd := c.findPendingCmdFunc(func(cmd command) bool {
-		switch cmd := cmd.(type) {
-		case *ListCommand:
-			return true // TODO: match pattern, check if already handled
-		case *SelectCommand:
-			return cmd.mailbox == data.Mailbox && cmd.data.List == nil
-		default:
-			return false
-		}
-	})
+	cmd := c.findPendingCmdFunc(
+		func(cmd command) bool {
+			switch cmd := cmd.(type) {
+			case *ListCommand:
+				return true // TODO: match pattern, check if already handled
+			case *SelectCommand:
+				return cmd.mailbox == data.Mailbox && cmd.data.List == nil
+			default:
+				return false
+			}
+		},
+	)
 	switch cmd := cmd.(type) {
 	case *ListCommand:
 		if cmd.returnStatus {
@@ -188,30 +196,32 @@ func readList(dec *imapwire.Decoder) (*imap.ListData, error) {
 	}
 
 	if dec.SP() {
-		err := dec.ExpectList(func() error {
-			var tag string
-			if !dec.ExpectAString(&tag) || !dec.ExpectSP() {
-				return dec.Err()
-			}
-			var err error
-			switch strings.ToUpper(tag) {
-			case "CHILDINFO":
-				data.ChildInfo, err = readChildInfoExtendedItem(dec)
-				if err != nil {
-					return fmt.Errorf("in childinfo-extended-item: %v", err)
+		err := dec.ExpectList(
+			func() error {
+				var tag string
+				if !dec.ExpectAString(&tag) || !dec.ExpectSP() {
+					return dec.Err()
 				}
-			case "OLDNAME":
-				data.OldName, err = readOldNameExtendedItem(dec)
-				if err != nil {
-					return fmt.Errorf("in oldname-extended-item: %v", err)
+				var err error
+				switch strings.ToUpper(tag) {
+				case "CHILDINFO":
+					data.ChildInfo, err = readChildInfoExtendedItem(dec)
+					if err != nil {
+						return fmt.Errorf("in childinfo-extended-item: %v", err)
+					}
+				case "OLDNAME":
+					data.OldName, err = readOldNameExtendedItem(dec)
+					if err != nil {
+						return fmt.Errorf("in oldname-extended-item: %v", err)
+					}
+				default:
+					if !dec.DiscardValue() {
+						return fmt.Errorf("in tagged-ext-val: %v", err)
+					}
 				}
-			default:
-				if !dec.DiscardValue() {
-					return fmt.Errorf("in tagged-ext-val: %v", err)
-				}
-			}
-			return nil
-		})
+				return nil
+			},
+		)
 		if err != nil {
 			return nil, fmt.Errorf("in mbox-list-extended: %v", err)
 		}
@@ -222,16 +232,18 @@ func readList(dec *imapwire.Decoder) (*imap.ListData, error) {
 
 func readChildInfoExtendedItem(dec *imapwire.Decoder) (*imap.ListDataChildInfo, error) {
 	var childInfo imap.ListDataChildInfo
-	err := dec.ExpectList(func() error {
-		var opt string
-		if !dec.ExpectAString(&opt) {
-			return dec.Err()
-		}
-		if strings.ToUpper(opt) == "SUBSCRIBED" {
-			childInfo.Subscribed = true
-		}
-		return nil
-	})
+	err := dec.ExpectList(
+		func() error {
+			var opt string
+			if !dec.ExpectAString(&opt) {
+				return dec.Err()
+			}
+			if strings.ToUpper(opt) == "SUBSCRIBED" {
+				childInfo.Subscribed = true
+			}
+			return nil
+		},
+	)
 	return &childInfo, err
 }
 

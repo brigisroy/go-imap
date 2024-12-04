@@ -3,9 +3,9 @@ package imapclient
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // MyRights sends a MYRIGHTS command.
@@ -22,7 +22,9 @@ func (c *Client) MyRights(mailbox string) *MyRightsCommand {
 // SetACL sends a SETACL command.
 //
 // This command requires support for the ACL extension.
-func (c *Client) SetACL(mailbox string, ri imap.RightsIdentifier, rm imap.RightModification, rs imap.RightSet) *SetACLCommand {
+func (c *Client) SetACL(
+	mailbox string, ri imap.RightsIdentifier, rm imap.RightModification, rs imap.RightSet,
+) *SetACLCommand {
 	cmd := &SetACLCommand{}
 	enc := c.beginCommand("SETACL", cmd)
 	enc.SP().Mailbox(mailbox).SP().String(string(ri)).SP()

@@ -3,8 +3,8 @@ package imapclient
 import (
 	"fmt"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 // GetQuota sends a GETQUOTA command.
@@ -56,21 +56,23 @@ func (c *Client) handleQuota() error {
 		return fmt.Errorf("in quota-response: %v", err)
 	}
 
-	cmd := c.findPendingCmdFunc(func(cmd command) bool {
-		switch cmd := cmd.(type) {
-		case *GetQuotaCommand:
-			return cmd.root == data.Root
-		case *GetQuotaRootCommand:
-			for _, root := range cmd.roots {
-				if root == data.Root {
-					return true
+	cmd := c.findPendingCmdFunc(
+		func(cmd command) bool {
+			switch cmd := cmd.(type) {
+			case *GetQuotaCommand:
+				return cmd.root == data.Root
+			case *GetQuotaRootCommand:
+				for _, root := range cmd.roots {
+					if root == data.Root {
+						return true
+					}
 				}
+				return false
+			default:
+				return false
 			}
-			return false
-		default:
-			return false
-		}
-	})
+		},
+	)
 	switch cmd := cmd.(type) {
 	case *GetQuotaCommand:
 		cmd.data = data
@@ -86,13 +88,15 @@ func (c *Client) handleQuotaRoot() error {
 		return fmt.Errorf("in quotaroot-response: %v", err)
 	}
 
-	cmd := c.findPendingCmdFunc(func(anyCmd command) bool {
-		cmd, ok := anyCmd.(*GetQuotaRootCommand)
-		if !ok {
-			return false
-		}
-		return cmd.mailbox == mailbox
-	})
+	cmd := c.findPendingCmdFunc(
+		func(anyCmd command) bool {
+			cmd, ok := anyCmd.(*GetQuotaRootCommand)
+			if !ok {
+				return false
+			}
+			return cmd.mailbox == mailbox
+		},
+	)
 	if cmd != nil {
 		cmd := cmd.(*GetQuotaRootCommand)
 		cmd.roots = roots
@@ -147,17 +151,19 @@ func readQuotaResponse(dec *imapwire.Decoder) (*QuotaData, error) {
 		return nil, dec.Err()
 	}
 	data.Resources = make(map[imap.QuotaResourceType]QuotaResourceData)
-	err := dec.ExpectList(func() error {
-		var (
-			name    string
-			resData QuotaResourceData
-		)
-		if !dec.ExpectAtom(&name) || !dec.ExpectSP() || !dec.ExpectNumber64(&resData.Usage) || !dec.ExpectSP() || !dec.ExpectNumber64(&resData.Limit) {
-			return fmt.Errorf("in quota-resource: %v", dec.Err())
-		}
-		data.Resources[imap.QuotaResourceType(name)] = resData
-		return nil
-	})
+	err := dec.ExpectList(
+		func() error {
+			var (
+				name    string
+				resData QuotaResourceData
+			)
+			if !dec.ExpectAtom(&name) || !dec.ExpectSP() || !dec.ExpectNumber64(&resData.Usage) || !dec.ExpectSP() || !dec.ExpectNumber64(&resData.Limit) {
+				return fmt.Errorf("in quota-resource: %v", dec.Err())
+			}
+			data.Resources[imap.QuotaResourceType(name)] = resData
+			return nil
+		},
+	)
 	return &data, err
 }
 

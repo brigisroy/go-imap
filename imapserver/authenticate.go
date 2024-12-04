@@ -6,9 +6,9 @@ import (
 
 	"github.com/emersion/go-sasl"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/internal"
-	"github.com/emersion/go-imap/v2/internal/imapwire"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/internal"
+	"github.com/brigisroy/go-imap/v2/internal/imapwire"
 )
 
 func (c *Conn) handleAuthenticate(tag string, dec *imapwire.Decoder) error {
@@ -60,16 +60,18 @@ func (c *Conn) handleAuthenticate(tag string, dec *imapwire.Decoder) error {
 				Text: "SASL mechanism not supported",
 			}
 		}
-		saslServer = sasl.NewPlainServer(func(identity, username, password string) error {
-			if identity != "" && identity != username {
-				return &imap.Error{
-					Type: imap.StatusResponseTypeNo,
-					Code: imap.ResponseCodeAuthorizationFailed,
-					Text: "SASL identity not supported",
+		saslServer = sasl.NewPlainServer(
+			func(identity, username, password string) error {
+				if identity != "" && identity != username {
+					return &imap.Error{
+						Type: imap.StatusResponseTypeNo,
+						Code: imap.ResponseCodeAuthorizationFailed,
+						Text: "SASL identity not supported",
+					}
 				}
-			}
-			return c.session.Login(username, password)
-		})
+				return c.session.Login(username, password)
+			},
+		)
 	}
 
 	enc := newResponseEncoder(c)

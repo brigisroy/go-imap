@@ -3,7 +3,7 @@ package imapserver_test
 import (
 	"testing"
 
-	"github.com/emersion/go-imap/v2/imapserver"
+	"github.com/brigisroy/go-imap/v2/imapserver"
 )
 
 type trackerUpdate struct {
@@ -129,27 +129,29 @@ var sessionTrackerSeqNumTests = []struct {
 func TestSessionTracker(t *testing.T) {
 	for _, tc := range sessionTrackerSeqNumTests {
 		tc := tc // capture range variable
-		t.Run(tc.name, func(t *testing.T) {
-			mboxTracker := imapserver.NewMailboxTracker(42)
-			sessTracker := mboxTracker.NewSession()
-			for _, update := range tc.pending {
-				switch {
-				case update.expunge != 0:
-					mboxTracker.QueueExpunge(update.expunge)
-				case update.numMessages != 0:
-					mboxTracker.QueueNumMessages(update.numMessages)
+		t.Run(
+			tc.name, func(t *testing.T) {
+				mboxTracker := imapserver.NewMailboxTracker(42)
+				sessTracker := mboxTracker.NewSession()
+				for _, update := range tc.pending {
+					switch {
+					case update.expunge != 0:
+						mboxTracker.QueueExpunge(update.expunge)
+					case update.numMessages != 0:
+						mboxTracker.QueueNumMessages(update.numMessages)
+					}
 				}
-			}
 
-			serverSeqNum := sessTracker.DecodeSeqNum(tc.clientSeqNum)
-			if tc.clientSeqNum != 0 && serverSeqNum != tc.serverSeqNum {
-				t.Errorf("DecodeSeqNum(%v): got %v, want %v", tc.clientSeqNum, serverSeqNum, tc.serverSeqNum)
-			}
+				serverSeqNum := sessTracker.DecodeSeqNum(tc.clientSeqNum)
+				if tc.clientSeqNum != 0 && serverSeqNum != tc.serverSeqNum {
+					t.Errorf("DecodeSeqNum(%v): got %v, want %v", tc.clientSeqNum, serverSeqNum, tc.serverSeqNum)
+				}
 
-			clientSeqNum := sessTracker.EncodeSeqNum(tc.serverSeqNum)
-			if tc.serverSeqNum != 0 && clientSeqNum != tc.clientSeqNum {
-				t.Errorf("EncodeSeqNum(%v): got %v, want %v", tc.serverSeqNum, clientSeqNum, tc.clientSeqNum)
-			}
-		})
+				clientSeqNum := sessTracker.EncodeSeqNum(tc.serverSeqNum)
+				if tc.serverSeqNum != 0 && clientSeqNum != tc.clientSeqNum {
+					t.Errorf("EncodeSeqNum(%v): got %v, want %v", tc.serverSeqNum, clientSeqNum, tc.clientSeqNum)
+				}
+			},
+		)
 	}
 }

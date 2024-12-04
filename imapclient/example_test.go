@@ -8,8 +8,8 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-sasl"
 
-	"github.com/emersion/go-imap/v2"
-	"github.com/emersion/go-imap/v2/imapclient"
+	"github.com/brigisroy/go-imap/v2"
+	"github.com/brigisroy/go-imap/v2/imapclient"
 )
 
 func ExampleClient() {
@@ -109,18 +109,22 @@ func ExampleClient_List_stream() {
 	var c *imapclient.Client
 
 	// ReturnStatus requires server support for IMAP4rev2 or LIST-STATUS
-	listCmd := c.List("", "%", &imap.ListOptions{
-		ReturnStatus: &imap.StatusOptions{
-			NumMessages: true,
-			NumUnseen:   true,
+	listCmd := c.List(
+		"", "%", &imap.ListOptions{
+			ReturnStatus: &imap.StatusOptions{
+				NumMessages: true,
+				NumUnseen:   true,
+			},
 		},
-	})
+	)
 	for {
 		mbox := listCmd.Next()
 		if mbox == nil {
 			break
 		}
-		log.Printf("Mailbox %q contains %v messages (%v unseen)", mbox.Mailbox, mbox.Status.NumMessages, mbox.Status.NumUnseen)
+		log.Printf(
+			"Mailbox %q contains %v messages (%v unseen)", mbox.Mailbox, mbox.Status.NumMessages, mbox.Status.NumUnseen,
+		)
 	}
 	if err := listCmd.Close(); err != nil {
 		log.Fatalf("LIST command failed: %v", err)
@@ -296,9 +300,11 @@ func ExampleClient_Fetch_parseBody() {
 func ExampleClient_Search() {
 	var c *imapclient.Client
 
-	data, err := c.UIDSearch(&imap.SearchCriteria{
-		Body: []string{"Hello world"},
-	}, nil).Wait()
+	data, err := c.UIDSearch(
+		&imap.SearchCriteria{
+			Body: []string{"Hello world"},
+		}, nil,
+	).Wait()
 	if err != nil {
 		log.Fatalf("UID SEARCH command failed: %v", err)
 	}
@@ -358,10 +364,12 @@ func ExampleClient_Authenticate_oauth() {
 		log.Fatal("OAUTHBEARER not supported by the server")
 	}
 
-	saslClient := sasl.NewOAuthBearerClient(&sasl.OAuthBearerOptions{
-		Username: username,
-		Token:    token,
-	})
+	saslClient := sasl.NewOAuthBearerClient(
+		&sasl.OAuthBearerOptions{
+			Username: username,
+			Token:    token,
+		},
+	)
 	if err := c.Authenticate(saslClient); err != nil {
 		log.Fatalf("authentication failed: %v", err)
 	}
