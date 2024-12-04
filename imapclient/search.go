@@ -174,23 +174,23 @@ func writeSearchKey(enc *imapwire.Encoder, criteria *imap.SearchCriteria) {
 	}
 
 	if !criteria.Since.IsZero() && !criteria.Before.IsZero() && criteria.Before.Sub(criteria.Since) == 24*time.Hour {
-		encodeItem().Atom("ON").SP().String(criteria.Since.Format(internal.DateLayout))
+		encodeItem().Atom("ON").SP().String(criteria.Since.Format(internal.DateTimeLayout))
 	} else {
 		if !criteria.Since.IsZero() {
-			encodeItem().Atom("SINCE").SP().String(criteria.Since.Format(internal.DateLayout))
+			encodeItem().Atom("SINCE").SP().String(criteria.Since.Format(internal.DateTimeLayout))
 		}
 		if !criteria.Before.IsZero() {
-			encodeItem().Atom("BEFORE").SP().String(criteria.Before.Format(internal.DateLayout))
+			encodeItem().Atom("BEFORE").SP().String(criteria.Before.Format(internal.DateTimeLayout))
 		}
 	}
 	if !criteria.SentSince.IsZero() && !criteria.SentBefore.IsZero() && criteria.SentBefore.Sub(criteria.SentSince) == 24*time.Hour {
-		encodeItem().Atom("SENTON").SP().String(criteria.SentSince.Format(internal.DateLayout))
+		encodeItem().Atom("SENTON").SP().String(criteria.SentSince.Format(internal.DateTimeLayout))
 	} else {
 		if !criteria.SentSince.IsZero() {
-			encodeItem().Atom("SENTSINCE").SP().String(criteria.SentSince.Format(internal.DateLayout))
+			encodeItem().Atom("SENTSINCE").SP().String(criteria.SentSince.Format(internal.DateTimeLayout))
 		}
 		if !criteria.SentBefore.IsZero() {
-			encodeItem().Atom("SENTBEFORE").SP().String(criteria.SentBefore.Format(internal.DateLayout))
+			encodeItem().Atom("SENTBEFORE").SP().String(criteria.SentBefore.Format(internal.DateTimeLayout))
 		}
 	}
 
